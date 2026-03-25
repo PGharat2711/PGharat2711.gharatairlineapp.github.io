@@ -24,9 +24,11 @@ import {
   X,
   User,
   Armchair,
-  Info
+  Info,
+  Share
 } from 'lucide-react';
 import { cn } from './lib/utils';
+import { trackBookingStep, trackFlightSelection, trackPayment, trackPageView } from './lib/gtm';
 
 // --- Types ---
 
@@ -88,7 +90,7 @@ const MOCK_FLIGHTS: Flight[] = [
 // --- Components ---
 
 const Header = () => (
-  <header className="fixed top-0 left-0 right-0 z-50 bg-black/80 backdrop-blur-md border-b border-white/10 px-6 py-4 flex items-center justify-between">
+  <header className="fixed top-0 left-0 right-0 z-50 bg-black/80 backdrop-blur-md border-b border-white/10 px-6 py-4 flex items-center justify-between pt-[calc(1rem+env(safe-area-inset-top))]">
     <div className="flex items-center gap-2 cursor-pointer" onClick={() => window.location.reload()}>
       <div className="w-10 h-10 bg-amber-600 rounded-full flex items-center justify-center">
         <Plane className="text-white w-6 h-6 rotate-45" />
@@ -114,6 +116,8 @@ const Header = () => (
 
 export default function App() {
   const [step, setStep] = useState<Step>('search');
+  const [showInstallPrompt, setShowInstallPrompt] = useState(false);
+  
   const [booking, setBooking] = useState<BookingData>({
     tripType: 'return',
     from: 'Mumbai',
@@ -135,6 +139,23 @@ export default function App() {
       insurance: false,
     }
   });
+
+  useEffect(() => {
+    trackPageView(step);
+    trackBookingStep(step, { tripType: booking.tripType });
+  }, [step]);
+
+  useEffect(() => {
+    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !(window as any).MSStream;
+    const isStandalone = window.matchMedia('(display-mode: standalone)').matches || (window.navigator as any).standalone;
+    
+    if (isIOS && !isStandalone) {
+      const hasSeenPrompt = localStorage.getItem('ios-prompt-seen');
+      if (!hasSeenPrompt) {
+        setShowInstallPrompt(true);
+      }
+    }
+  }, []);
 
   const nextStep = () => {
     if (step === 'search') setStep('flights');
@@ -377,7 +398,14 @@ export default function App() {
         )}
         
         <button 
-          onClick={nextStep}
+          onClick={() => {
+            trackBookingStep('search_completed', { 
+              from: booking.from, 
+              to: booking.to, 
+              tripType: booking.tripType 
+            });
+            nextStep();
+          }}
           className="w-full mt-8 bg-amber-600 text-white py-5 rounded-2xl text-lg font-bold uppercase tracking-[0.2em] hover:bg-amber-700 transition-all flex items-center justify-center gap-3 shadow-lg shadow-amber-600/20"
         >
           Search Flights <ChevronRight className="w-6 h-6" />
@@ -430,6 +458,7 @@ export default function App() {
               animate={{ opacity: 1, x: 0 }}
               onClick={() => {
                 setBooking({...booking, selectedFlight: flight});
+                trackFlightSelection(flight);
                 nextStep();
               }}
               className="bg-zinc-900 border border-white/5 p-6 rounded-3xl hover:border-amber-500/50 transition-all cursor-pointer group"
@@ -775,7 +804,10 @@ export default function App() {
               </div>
               
               <button 
-                onClick={nextStep}
+                onClick={() => {
+                  trackPayment(total + 85);
+                  nextStep();
+                }}
                 className="w-full bg-amber-600 text-white py-5 rounded-2xl text-lg font-bold uppercase tracking-[0.2em] hover:bg-amber-700 transition-all shadow-lg shadow-amber-600/20"
               >
                 Pay Now
@@ -840,6 +872,7 @@ export default function App() {
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: -10 }}
           transition={{ duration: 0.3 }}
+          className="pb-[env(safe-area-inset-bottom)]"
         >
           {step === 'search' && renderSearch()}
           {step === 'flights' && renderFlights()}
@@ -849,6 +882,41 @@ export default function App() {
           {step === 'payment' && renderPayment()}
           {step === 'confirmation' && renderConfirmation()}
         </motion.main>
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {showInstallPrompt && (
+          <motion.div
+            initial={{ y: 100, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            exit={{ y: 100, opacity: 0 }}
+            className="fixed bottom-6 left-6 right-6 z-[100] bg-zinc-900 border border-white/10 p-6 rounded-3xl shadow-2xl flex flex-col gap-4"
+          >
+            <div className="flex justify-between items-start">
+              <div className="flex gap-4">
+                <div className="w-12 h-12 bg-amber-600 rounded-2xl flex items-center justify-center">
+                  <Plane className="text-white w-6 h-6 rotate-45" />
+                </div>
+                <div>
+                  <h4 className="text-white font-bold">Install Gharat Airways</h4>
+                  <p className="text-white/50 text-xs">Add to home screen for the full luxury experience.</p>
+                </div>
+              </div>
+              <button 
+                onClick={() => {
+                  setShowInstallPrompt(false);
+                  localStorage.setItem('ios-prompt-seen', 'true');
+                }}
+                className="text-white/30 p-1"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <div className="flex items-center gap-3 text-xs text-white/70 bg-white/5 p-3 rounded-xl">
+              <span>Tap the share icon <Share className="w-4 h-4 inline mx-1" /> and then "Add to Home Screen"</span>
+            </div>
+          </motion.div>
+        )}
       </AnimatePresence>
 
       <footer className="bg-black border-t border-white/5 py-12 px-6">
