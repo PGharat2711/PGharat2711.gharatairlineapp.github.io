@@ -89,33 +89,6 @@ const MOCK_FLIGHTS: Flight[] = [
   { id: 'GA103', from: 'Mumbai', to: 'Doha', departure: '08:00 PM', arrival: '10:30 PM', duration: '4h 00m', price: 2500, class: 'First' },
 ];
 
-// --- Components ---
-
-const Header = () => (
-  <header className="fixed top-0 left-0 right-0 z-50 bg-white/90 backdrop-blur-md border-b border-zinc-200 px-6 py-4 flex items-center justify-between pt-[calc(1rem+env(safe-area-inset-top))]">
-    <div className="flex items-center gap-2 cursor-pointer" onClick={() => window.location.reload()}>
-      <div className="w-10 h-10 bg-burgundy rounded-full flex items-center justify-center">
-        <Plane className="text-white w-6 h-6 rotate-45" />
-      </div>
-      <span className="text-2xl font-serif italic tracking-wider text-burgundy">Gharat <span className="text-gold">Airways</span></span>
-    </div>
-    <nav className="hidden lg:flex items-center gap-8 text-xs uppercase tracking-[0.2em] text-zinc-600 font-semibold">
-      <a href="#" className="hover:text-burgundy transition-colors border-b-2 border-transparent hover:border-burgundy pb-1">Book</a>
-      <a href="#" className="hover:text-burgundy transition-colors border-b-2 border-transparent hover:border-burgundy pb-1">Check-in</a>
-      <a href="#" className="hover:text-burgundy transition-colors border-b-2 border-transparent hover:border-burgundy pb-1">Manage</a>
-      <a href="#" className="hover:text-burgundy transition-colors border-b-2 border-transparent hover:border-burgundy pb-1">Flight Status</a>
-      <a href="#" className="hover:text-burgundy transition-colors border-b-2 border-transparent hover:border-burgundy pb-1">Experience</a>
-    </nav>
-    <div className="flex items-center gap-6">
-      <div className="hidden sm:flex items-center gap-2 text-zinc-400 text-xs uppercase tracking-widest">
-        <User className="w-4 h-4" />
-        <span>Privilege Club</span>
-      </div>
-      <button className="bg-burgundy text-white px-8 py-2.5 rounded-full text-xs font-bold uppercase tracking-widest hover:bg-red-900 transition-all shadow-lg shadow-burgundy/20 active:scale-95">Login</button>
-    </div>
-  </header>
-);
-
 export default function App() {
   const [step, setStep] = useState<Step>('search');
   const [showInstallPrompt, setShowInstallPrompt] = useState(false);
@@ -142,10 +115,53 @@ export default function App() {
     }
   });
 
+  const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
+
   useEffect(() => {
     trackPageView(step);
     trackBookingStep(step, { tripType: booking.tripType });
   }, [step]);
+
+  const isStandalone = window.matchMedia('(display-mode: standalone)').matches || (window.navigator as any).standalone;
+
+  const Header = () => (
+    <header className="fixed top-0 left-0 right-0 z-50 bg-white/90 backdrop-blur-md border-b border-zinc-200 px-6 py-4 flex items-center justify-between pt-[calc(1rem+env(safe-area-inset-top))]">
+      <div className="flex items-center gap-2 cursor-pointer" onClick={() => { triggerHaptic(); window.location.reload(); }}>
+        <div className="w-10 h-10 bg-burgundy rounded-full flex items-center justify-center">
+          <Plane className="text-white w-6 h-6 rotate-45" />
+        </div>
+        <span className="text-2xl font-serif italic tracking-wider text-burgundy">Gharat <span className="text-gold">Airways</span></span>
+      </div>
+      <nav className="hidden lg:flex items-center gap-8 text-xs uppercase tracking-[0.2em] text-zinc-600 font-semibold">
+        <a href="#" className="hover:text-burgundy transition-colors border-b-2 border-transparent hover:border-burgundy pb-1">Book</a>
+        <a href="#" className="hover:text-burgundy transition-colors border-b-2 border-transparent hover:border-burgundy pb-1">Check-in</a>
+        <a href="#" className="hover:text-burgundy transition-colors border-b-2 border-transparent hover:border-burgundy pb-1">Manage</a>
+        <a href="#" className="hover:text-burgundy transition-colors border-b-2 border-transparent hover:border-burgundy pb-1">Flight Status</a>
+        <a href="#" className="hover:text-burgundy transition-colors border-b-2 border-transparent hover:border-burgundy pb-1">Experience</a>
+      </nav>
+      <div className="flex items-center gap-6">
+        {!isStandalone && (
+          <button 
+            onClick={() => { triggerHaptic(); setShowInstallPrompt(true); }}
+            className="hidden sm:flex items-center gap-2 text-gold text-xs uppercase tracking-widest font-bold hover:text-burgundy transition-colors"
+          >
+            <Share className="w-4 h-4" />
+            <span>Install App</span>
+          </button>
+        )}
+        <div className="hidden sm:flex items-center gap-2 text-zinc-400 text-xs uppercase tracking-widest">
+          <User className="w-4 h-4" />
+          <span>Privilege Club</span>
+        </div>
+        <button 
+          onClick={() => triggerHaptic()}
+          className="bg-burgundy text-white px-8 py-2.5 rounded-full text-xs font-bold uppercase tracking-widest hover:bg-red-900 transition-all shadow-lg shadow-burgundy/20 active:scale-95"
+        >
+          Login
+        </button>
+      </div>
+    </header>
+  );
 
   useEffect(() => {
     const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !(window as any).MSStream;
@@ -157,9 +173,43 @@ export default function App() {
         setShowInstallPrompt(true);
       }
     }
+
+    const handleBeforeInstallPrompt = (e: any) => {
+      e.preventDefault();
+      setDeferredPrompt(e);
+      setShowInstallPrompt(true);
+    };
+
+    window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+
+    return () => {
+      window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+    };
   }, []);
 
+  const triggerHaptic = () => {
+    if ('vibrate' in navigator) {
+      navigator.vibrate(10);
+    }
+  };
+
+  const handleInstall = async () => {
+    if (deferredPrompt) {
+      deferredPrompt.prompt();
+      const { outcome } = await deferredPrompt.userChoice;
+      if (outcome === 'accepted') {
+        setDeferredPrompt(null);
+        setShowInstallPrompt(false);
+      }
+    } else {
+      // For iOS, we just show instructions (handled in the UI)
+      localStorage.setItem('ios-prompt-seen', 'true');
+      setShowInstallPrompt(false);
+    }
+  };
+
   const nextStep = () => {
+    triggerHaptic();
     if (step === 'search') setStep('flights');
     else if (step === 'flights') setStep('passengers');
     else if (step === 'passengers') setStep('seats');
@@ -169,6 +219,7 @@ export default function App() {
   };
 
   const prevStep = () => {
+    triggerHaptic();
     if (step === 'flights') setStep('search');
     else if (step === 'passengers') setStep('flights');
     else if (step === 'seats') setStep('passengers');
@@ -1024,7 +1075,16 @@ export default function App() {
               </button>
             </div>
             <div className="flex items-center gap-3 text-xs text-zinc-600 bg-zinc-50 p-3 rounded-xl">
-              <span>Tap the share icon <Share className="w-4 h-4 inline mx-1" /> and then "Add to Home Screen"</span>
+              {deferredPrompt ? (
+                <button 
+                  onClick={() => { triggerHaptic(); handleInstall(); }}
+                  className="w-full bg-burgundy text-white py-3 rounded-xl font-bold uppercase tracking-widest"
+                >
+                  Install Now
+                </button>
+              ) : (
+                <span>Tap the share icon <Share className="w-4 h-4 inline mx-1" /> and then "Add to Home Screen"</span>
+              )}
             </div>
           </motion.div>
         )}
