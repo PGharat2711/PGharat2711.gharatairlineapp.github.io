@@ -9,7 +9,18 @@ const app = initializeApp(firebaseConfig);
 console.log('Firebase initialized successfully');
 export const auth = getAuth(app);
 export const db = getFirestore(app, firebaseConfig.firestoreDatabaseId);
-export const analytics = typeof window !== 'undefined' ? getAnalytics(app) : null;
+
+// Initialize Analytics safely
+let analyticsInstance = null;
+if (typeof window !== 'undefined' && firebaseConfig.measurementId) {
+  try {
+    analyticsInstance = getAnalytics(app);
+  } catch (error) {
+    console.warn('Firebase Analytics failed to initialize:', error);
+  }
+}
+
+export const analytics = analyticsInstance;
 export const googleProvider = new GoogleAuthProvider();
 
 // Analytics Helpers

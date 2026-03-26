@@ -580,6 +580,18 @@ export default function App() {
               to: booking.to, 
               tripType: booking.tripType 
             });
+            
+            // Log flight_search event to Firebase
+            trackEvent('flight_search', {
+              origin: booking.from,
+              destination: booking.to,
+              departure_date: booking.date,
+              return_date: booking.tripType === 'return' ? booking.returnDate : undefined,
+              trip_type: booking.tripType,
+              passengers: booking.passengersCount,
+              multi_city_segments: booking.tripType === 'multicity' ? booking.multiCitySegments.length : undefined
+            });
+
             nextStep();
           }}
           className="w-full mt-8 bg-burgundy text-white py-5 rounded-2xl text-lg font-bold uppercase tracking-[0.2em] hover:bg-red-900 transition-all flex items-center justify-center gap-3 shadow-lg shadow-burgundy/20"
