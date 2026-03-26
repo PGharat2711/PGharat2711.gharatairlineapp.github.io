@@ -31,7 +31,6 @@ import {
   AlertCircle
 } from 'lucide-react';
 import { cn } from './lib/utils';
-import { trackBookingStep, trackFlightSelection, trackPayment, trackPageView } from './lib/gtm';
 import { auth, db, loginWithGoogle, logout, handleFirestoreError, OperationType, trackEvent } from './firebase';
 import { onAuthStateChanged, User as FirebaseUser } from 'firebase/auth';
 import { collection, addDoc, serverTimestamp, query, where, onSnapshot, orderBy } from 'firebase/firestore';
@@ -183,9 +182,8 @@ export default function App() {
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
 
   useEffect(() => {
-    trackPageView(step);
-    trackBookingStep(step, { tripType: booking.tripType });
     trackEvent('page_view', { page_title: step });
+    trackEvent('booking_step', { step, trip_type: booking.tripType });
   }, [step]);
 
   useEffect(() => {
@@ -575,12 +573,6 @@ export default function App() {
         
         <button 
           onClick={() => {
-            trackBookingStep('search_completed', { 
-              from: booking.from, 
-              to: booking.to, 
-              tripType: booking.tripType 
-            });
-            
             // Log flight_search event to Firebase
             trackEvent('flight_search', {
               origin: booking.from,
@@ -646,7 +638,7 @@ export default function App() {
               animate={{ opacity: 1, x: 0 }}
               onClick={() => {
                 setBooking({...booking, selectedFlight: flight});
-                trackFlightSelection(flight);
+                trackEvent('select_flight', { flight_id: flight.id, flight_price: flight.price });
                 nextStep();
               }}
               className="bg-zinc-50 border border-zinc-100 p-6 rounded-3xl hover:border-gold/50 transition-all cursor-pointer group shadow-sm hover:shadow-md"
@@ -955,7 +947,7 @@ export default function App() {
       };
 
       await addDoc(collection(db, 'bookings'), bookingPayload);
-      trackPayment(bookingPayload.price);
+      trackEvent('purchase', { amount: bookingPayload.price, currency: 'USD' });
       nextStep();
     } catch (error) {
       handleFirestoreError(error, OperationType.CREATE, 'bookings');

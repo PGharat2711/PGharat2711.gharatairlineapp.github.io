@@ -12,11 +12,30 @@ export const db = getFirestore(app, firebaseConfig.firestoreDatabaseId);
 
 // Initialize Analytics safely
 let analyticsInstance = null;
-if (typeof window !== 'undefined' && firebaseConfig.measurementId) {
+const measurementId = firebaseConfig.measurementId || 'G-XXXXXXXXXX'; // Placeholder if missing
+
+if (typeof window !== 'undefined' && measurementId) {
   try {
+    // Configure gtag to route to sGTM
+    const sGtmUrl = 'https://server-side-tagging-14619807999.us-east1.run.app'; 
+    
+    window.gtag = window.gtag || function() { (window.dataLayer = window.dataLayer || []).push(arguments); };
+    window.gtag('config', measurementId, {
+      'transport_url': sGtmUrl,
+      'first_party_collection': true
+    });
+
     analyticsInstance = getAnalytics(app);
+    console.log('Firebase Analytics initialized with sGTM routing');
   } catch (error) {
     console.warn('Firebase Analytics failed to initialize:', error);
+  }
+}
+
+declare global {
+  interface Window {
+    gtag: any;
+    dataLayer: any[];
   }
 }
 
