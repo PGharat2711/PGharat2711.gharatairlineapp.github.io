@@ -56,6 +56,8 @@ interface Passenger {
   firstName: string;
   lastName: string;
   passportNumber: string;
+  email: string;
+  phone: string;
 }
 
 interface BookingData {
@@ -90,26 +92,26 @@ const MOCK_FLIGHTS: Flight[] = [
 // --- Components ---
 
 const Header = () => (
-  <header className="fixed top-0 left-0 right-0 z-50 bg-black/80 backdrop-blur-md border-b border-white/10 px-6 py-4 flex items-center justify-between pt-[calc(1rem+env(safe-area-inset-top))]">
+  <header className="fixed top-0 left-0 right-0 z-50 bg-white/90 backdrop-blur-md border-b border-zinc-200 px-6 py-4 flex items-center justify-between pt-[calc(1rem+env(safe-area-inset-top))]">
     <div className="flex items-center gap-2 cursor-pointer" onClick={() => window.location.reload()}>
-      <div className="w-10 h-10 bg-amber-600 rounded-full flex items-center justify-center">
+      <div className="w-10 h-10 bg-burgundy rounded-full flex items-center justify-center">
         <Plane className="text-white w-6 h-6 rotate-45" />
       </div>
-      <span className="text-2xl font-serif italic tracking-wider text-white">Gharat <span className="text-amber-500">Airways</span></span>
+      <span className="text-2xl font-serif italic tracking-wider text-burgundy">Gharat <span className="text-gold">Airways</span></span>
     </div>
-    <nav className="hidden lg:flex items-center gap-8 text-xs uppercase tracking-[0.2em] text-white/70 font-semibold">
-      <a href="#" className="hover:text-amber-500 transition-colors border-b-2 border-transparent hover:border-amber-500 pb-1">Book</a>
-      <a href="#" className="hover:text-amber-500 transition-colors border-b-2 border-transparent hover:border-amber-500 pb-1">Check-in</a>
-      <a href="#" className="hover:text-amber-500 transition-colors border-b-2 border-transparent hover:border-amber-500 pb-1">Manage</a>
-      <a href="#" className="hover:text-amber-500 transition-colors border-b-2 border-transparent hover:border-amber-500 pb-1">Flight Status</a>
-      <a href="#" className="hover:text-amber-500 transition-colors border-b-2 border-transparent hover:border-amber-500 pb-1">Experience</a>
+    <nav className="hidden lg:flex items-center gap-8 text-xs uppercase tracking-[0.2em] text-zinc-600 font-semibold">
+      <a href="#" className="hover:text-burgundy transition-colors border-b-2 border-transparent hover:border-burgundy pb-1">Book</a>
+      <a href="#" className="hover:text-burgundy transition-colors border-b-2 border-transparent hover:border-burgundy pb-1">Check-in</a>
+      <a href="#" className="hover:text-burgundy transition-colors border-b-2 border-transparent hover:border-burgundy pb-1">Manage</a>
+      <a href="#" className="hover:text-burgundy transition-colors border-b-2 border-transparent hover:border-burgundy pb-1">Flight Status</a>
+      <a href="#" className="hover:text-burgundy transition-colors border-b-2 border-transparent hover:border-burgundy pb-1">Experience</a>
     </nav>
     <div className="flex items-center gap-6">
-      <div className="hidden sm:flex items-center gap-2 text-white/50 text-xs uppercase tracking-widest">
+      <div className="hidden sm:flex items-center gap-2 text-zinc-400 text-xs uppercase tracking-widest">
         <User className="w-4 h-4" />
         <span>Privilege Club</span>
       </div>
-      <button className="bg-amber-600 text-white px-8 py-2.5 rounded-full text-xs font-bold uppercase tracking-widest hover:bg-amber-700 transition-all shadow-lg shadow-amber-600/20 active:scale-95">Login</button>
+      <button className="bg-burgundy text-white px-8 py-2.5 rounded-full text-xs font-bold uppercase tracking-widest hover:bg-red-900 transition-all shadow-lg shadow-burgundy/20 active:scale-95">Login</button>
     </div>
   </header>
 );
@@ -130,7 +132,7 @@ export default function App() {
     ],
     passengersCount: 1,
     selectedFlight: null,
-    passengers: [{ firstName: '', lastName: '', passportNumber: '' }],
+    passengers: [{ firstName: '', lastName: '', passportNumber: '', email: '', phone: '' }],
     selectedSeats: [],
     addons: {
       baggage: false,
@@ -190,19 +192,19 @@ export default function App() {
       <motion.div 
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="relative z-10 w-full max-w-5xl bg-black/40 backdrop-blur-xl p-8 rounded-3xl border border-white/10 shadow-2xl"
+        className="relative z-10 w-full max-w-5xl bg-white/95 backdrop-blur-xl p-8 rounded-3xl border border-zinc-200 shadow-2xl"
       >
-        <h1 className="text-5xl md:text-7xl font-serif italic text-white mb-8 text-center">Where luxury takes flight.</h1>
+        <h1 className="text-5xl md:text-7xl font-serif italic text-burgundy mb-8 text-center">Where luxury takes flight.</h1>
         
         {/* Trip Type Selector */}
-        <div className="flex items-center gap-6 mb-8 border-b border-white/10 pb-4">
+        <div className="flex items-center gap-6 mb-8 border-b border-zinc-100 pb-4">
           {(['return', 'oneway', 'multicity'] as TripType[]).map((type) => (
             <button
               key={type}
               onClick={() => setBooking({ ...booking, tripType: type })}
               className={cn(
                 "text-xs uppercase tracking-[0.2em] font-bold transition-all pb-2 border-b-2",
-                booking.tripType === type ? "text-amber-500 border-amber-500" : "text-white/40 border-transparent hover:text-white"
+                booking.tripType === type ? "text-burgundy border-burgundy" : "text-zinc-400 border-transparent hover:text-burgundy"
               )}
             >
               {type === 'return' ? 'Return' : type === 'oneway' ? 'One Way' : 'Multi-city'}
@@ -212,36 +214,36 @@ export default function App() {
 
         {booking.tripType !== 'multicity' ? (
           <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
-            <div className="bg-white/10 p-4 rounded-2xl border border-white/20">
-              <label className="text-xs uppercase tracking-widest text-white/50 block mb-1">From</label>
-              <div className="flex items-center gap-2 text-white">
-                <MapPin className="w-4 h-4 text-amber-500" />
+            <div className="bg-zinc-50 p-4 rounded-2xl border border-zinc-100">
+              <label className="text-xs uppercase tracking-widest text-zinc-400 block mb-1">From</label>
+              <div className="flex items-center gap-2 text-zinc-900">
+                <MapPin className="w-4 h-4 text-gold" />
                 <select 
                   value={booking.from} 
                   onChange={e => setBooking({...booking, from: e.target.value})}
                   className="bg-transparent border-none focus:ring-0 w-full font-medium"
                 >
-                  {DESTINATIONS.map(d => <option key={d} value={d} className="bg-zinc-900">{d}</option>)}
+                  {DESTINATIONS.map(d => <option key={d} value={d} className="bg-white">{d}</option>)}
                 </select>
               </div>
             </div>
-            <div className="bg-white/10 p-4 rounded-2xl border border-white/20">
-              <label className="text-xs uppercase tracking-widest text-white/50 block mb-1">To</label>
-              <div className="flex items-center gap-2 text-white">
-                <MapPin className="w-4 h-4 text-amber-500" />
+            <div className="bg-zinc-50 p-4 rounded-2xl border border-zinc-100">
+              <label className="text-xs uppercase tracking-widest text-zinc-400 block mb-1">To</label>
+              <div className="flex items-center gap-2 text-zinc-900">
+                <MapPin className="w-4 h-4 text-gold" />
                 <select 
                   value={booking.to} 
                   onChange={e => setBooking({...booking, to: e.target.value})}
                   className="bg-transparent border-none focus:ring-0 w-full font-medium"
                 >
-                  {DESTINATIONS.map(d => <option key={d} value={d} className="bg-zinc-900">{d}</option>)}
+                  {DESTINATIONS.map(d => <option key={d} value={d} className="bg-white">{d}</option>)}
                 </select>
               </div>
             </div>
-            <div className="bg-white/10 p-4 rounded-2xl border border-white/20">
-              <label className="text-xs uppercase tracking-widest text-white/50 block mb-1">Departure</label>
-              <div className="flex items-center gap-2 text-white">
-                <Calendar className="w-4 h-4 text-amber-500" />
+            <div className="bg-zinc-50 p-4 rounded-2xl border border-zinc-100">
+              <label className="text-xs uppercase tracking-widest text-zinc-400 block mb-1">Departure</label>
+              <div className="flex items-center gap-2 text-zinc-900">
+                <Calendar className="w-4 h-4 text-gold" />
                 <input 
                   type="date" 
                   value={booking.date}
@@ -251,10 +253,10 @@ export default function App() {
               </div>
             </div>
             {booking.tripType === 'return' && (
-              <div className="bg-white/10 p-4 rounded-2xl border border-white/20">
-                <label className="text-xs uppercase tracking-widest text-white/50 block mb-1">Return</label>
-                <div className="flex items-center gap-2 text-white">
-                  <Calendar className="w-4 h-4 text-amber-500" />
+              <div className="bg-zinc-50 p-4 rounded-2xl border border-zinc-100">
+                <label className="text-xs uppercase tracking-widest text-zinc-400 block mb-1">Return</label>
+                <div className="flex items-center gap-2 text-zinc-900">
+                  <Calendar className="w-4 h-4 text-gold" />
                   <input 
                     type="date" 
                     value={booking.returnDate}
@@ -265,12 +267,12 @@ export default function App() {
               </div>
             )}
             <div className={cn(
-              "bg-white/10 p-4 rounded-2xl border border-white/20",
+              "bg-zinc-50 p-4 rounded-2xl border border-zinc-100",
               booking.tripType === 'oneway' ? "md:col-span-2" : ""
             )}>
-              <label className="text-xs uppercase tracking-widest text-white/50 block mb-1">Passengers</label>
-              <div className="flex items-center gap-2 text-white">
-                <Users className="w-4 h-4 text-amber-500" />
+              <label className="text-xs uppercase tracking-widest text-zinc-400 block mb-1">Passengers</label>
+              <div className="flex items-center gap-2 text-zinc-900">
+                <Users className="w-4 h-4 text-gold" />
                 <input 
                   type="number" 
                   min="1" 
@@ -281,7 +283,7 @@ export default function App() {
                     setBooking({
                       ...booking, 
                       passengersCount: count,
-                      passengers: Array(count).fill({ firstName: '', lastName: '', passportNumber: '' })
+                      passengers: Array.from({ length: count }, () => ({ firstName: '', lastName: '', passportNumber: '', email: '', phone: '' }))
                     });
                   }}
                   className="bg-transparent border-none focus:ring-0 w-full font-medium"
@@ -293,10 +295,10 @@ export default function App() {
           <div className="space-y-4">
             {booking.multiCitySegments.map((segment, index) => (
               <div key={index} className="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
-                <div className="bg-white/10 p-4 rounded-2xl border border-white/20">
-                  <label className="text-xs uppercase tracking-widest text-white/50 block mb-1">From</label>
-                  <div className="flex items-center gap-2 text-white">
-                    <MapPin className="w-4 h-4 text-amber-500" />
+                <div className="bg-zinc-50 p-4 rounded-2xl border border-zinc-100">
+                  <label className="text-xs uppercase tracking-widest text-zinc-400 block mb-1">From</label>
+                  <div className="flex items-center gap-2 text-zinc-900">
+                    <MapPin className="w-4 h-4 text-gold" />
                     <select 
                       value={segment.from} 
                       onChange={e => {
@@ -306,14 +308,14 @@ export default function App() {
                       }}
                       className="bg-transparent border-none focus:ring-0 w-full font-medium"
                     >
-                      {DESTINATIONS.map(d => <option key={d} value={d} className="bg-zinc-900">{d}</option>)}
+                      {DESTINATIONS.map(d => <option key={d} value={d} className="bg-white">{d}</option>)}
                     </select>
                   </div>
                 </div>
-                <div className="bg-white/10 p-4 rounded-2xl border border-white/20">
-                  <label className="text-xs uppercase tracking-widest text-white/50 block mb-1">To</label>
-                  <div className="flex items-center gap-2 text-white">
-                    <MapPin className="w-4 h-4 text-amber-500" />
+                <div className="bg-zinc-50 p-4 rounded-2xl border border-zinc-100">
+                  <label className="text-xs uppercase tracking-widest text-zinc-400 block mb-1">To</label>
+                  <div className="flex items-center gap-2 text-zinc-900">
+                    <MapPin className="w-4 h-4 text-gold" />
                     <select 
                       value={segment.to} 
                       onChange={e => {
@@ -323,14 +325,14 @@ export default function App() {
                       }}
                       className="bg-transparent border-none focus:ring-0 w-full font-medium"
                     >
-                      {DESTINATIONS.map(d => <option key={d} value={d} className="bg-zinc-900">{d}</option>)}
+                      {DESTINATIONS.map(d => <option key={d} value={d} className="bg-white">{d}</option>)}
                     </select>
                   </div>
                 </div>
-                <div className="bg-white/10 p-4 rounded-2xl border border-white/20">
-                  <label className="text-xs uppercase tracking-widest text-white/50 block mb-1">Date</label>
-                  <div className="flex items-center gap-2 text-white">
-                    <Calendar className="w-4 h-4 text-amber-500" />
+                <div className="bg-zinc-50 p-4 rounded-2xl border border-zinc-100">
+                  <label className="text-xs uppercase tracking-widest text-zinc-400 block mb-1">Date</label>
+                  <div className="flex items-center gap-2 text-zinc-900">
+                    <Calendar className="w-4 h-4 text-gold" />
                     <input 
                       type="date" 
                       value={segment.date}
@@ -349,7 +351,7 @@ export default function App() {
                       const newSegments = booking.multiCitySegments.filter((_, i) => i !== index);
                       setBooking({ ...booking, multiCitySegments: newSegments });
                     }}
-                    className="text-white/40 hover:text-red-500 p-4 text-xs uppercase tracking-widest font-bold"
+                    className="text-zinc-400 hover:text-red-600 p-4 text-xs uppercase tracking-widest font-bold"
                   >
                     Remove
                   </button>
@@ -368,14 +370,14 @@ export default function App() {
                     ]
                   });
                 }}
-                className="text-amber-500 text-xs uppercase tracking-widest font-bold hover:text-amber-400"
+                className="text-gold text-xs uppercase tracking-widest font-bold hover:text-burgundy"
               >
                 + Add another flight
               </button>
-              <div className="bg-white/10 p-4 rounded-2xl border border-white/20 min-w-[200px]">
-                <label className="text-xs uppercase tracking-widest text-white/50 block mb-1">Passengers</label>
-                <div className="flex items-center gap-2 text-white">
-                  <Users className="w-4 h-4 text-amber-500" />
+              <div className="bg-zinc-50 p-4 rounded-2xl border border-zinc-100 min-w-[200px]">
+                <label className="text-xs uppercase tracking-widest text-zinc-400 block mb-1">Passengers</label>
+                <div className="flex items-center gap-2 text-zinc-900">
+                  <Users className="w-4 h-4 text-gold" />
                   <input 
                     type="number" 
                     min="1" 
@@ -386,7 +388,7 @@ export default function App() {
                       setBooking({
                         ...booking, 
                         passengersCount: count,
-                        passengers: Array(count).fill({ firstName: '', lastName: '', passportNumber: '' })
+                        passengers: Array.from({ length: count }, () => ({ firstName: '', lastName: '', passportNumber: '', email: '', phone: '' }))
                       });
                     }}
                     className="bg-transparent border-none focus:ring-0 w-full font-medium"
@@ -406,7 +408,7 @@ export default function App() {
             });
             nextStep();
           }}
-          className="w-full mt-8 bg-amber-600 text-white py-5 rounded-2xl text-lg font-bold uppercase tracking-[0.2em] hover:bg-amber-700 transition-all flex items-center justify-center gap-3 shadow-lg shadow-amber-600/20"
+          className="w-full mt-8 bg-burgundy text-white py-5 rounded-2xl text-lg font-bold uppercase tracking-[0.2em] hover:bg-red-900 transition-all flex items-center justify-center gap-3 shadow-lg shadow-burgundy/20"
         >
           Search Flights <ChevronRight className="w-6 h-6" />
         </button>
@@ -424,13 +426,13 @@ export default function App() {
             initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
             transition={{ delay: i * 0.1 }}
-            className="bg-zinc-900/50 border border-white/5 p-8 rounded-3xl hover:bg-zinc-900 transition-colors group cursor-pointer"
+            className="bg-zinc-50 border border-zinc-100 p-8 rounded-3xl hover:bg-white hover:shadow-lg transition-all group cursor-pointer"
           >
-            <div className="w-12 h-12 bg-amber-600/20 rounded-2xl flex items-center justify-center text-amber-500 mb-6 group-hover:scale-110 transition-transform">
+            <div className="w-12 h-12 bg-gold/10 rounded-2xl flex items-center justify-center text-gold mb-6 group-hover:scale-110 transition-transform">
               {item.icon}
             </div>
-            <h3 className="text-xl font-serif text-white mb-3">{item.title}</h3>
-            <p className="text-white/50 text-sm leading-relaxed">{item.desc}</p>
+            <h3 className="text-xl font-serif text-zinc-900 mb-3">{item.title}</h3>
+            <p className="text-zinc-500 text-sm leading-relaxed">{item.desc}</p>
           </motion.div>
         ))}
       </div>
@@ -438,15 +440,15 @@ export default function App() {
   );
 
   const renderFlights = () => (
-    <div className="min-h-screen bg-zinc-950 pt-32 pb-20 px-4">
+    <div className="min-h-screen bg-white pt-32 pb-20 px-4">
       <div className="max-w-4xl mx-auto">
         <div className="flex items-center justify-between mb-8">
-          <button onClick={prevStep} className="text-white/50 hover:text-white flex items-center gap-2">
+          <button onClick={prevStep} className="text-zinc-500 hover:text-burgundy flex items-center gap-2 transition-colors">
             <ChevronLeft className="w-5 h-5" /> Back to search
           </button>
           <div className="text-right">
-            <h2 className="text-2xl font-serif text-white">{booking.from} to {booking.to}</h2>
-            <p className="text-white/50 text-sm">{booking.date} • {booking.passengersCount} Passenger(s)</p>
+            <h2 className="text-2xl font-serif text-zinc-900">{booking.from} to {booking.to}</h2>
+            <p className="text-zinc-500 text-sm">{booking.date} • {booking.passengersCount} Passenger(s)</p>
           </div>
         </div>
 
@@ -461,32 +463,32 @@ export default function App() {
                 trackFlightSelection(flight);
                 nextStep();
               }}
-              className="bg-zinc-900 border border-white/5 p-6 rounded-3xl hover:border-amber-500/50 transition-all cursor-pointer group"
+              className="bg-zinc-50 border border-zinc-100 p-6 rounded-3xl hover:border-gold/50 transition-all cursor-pointer group shadow-sm hover:shadow-md"
             >
               <div className="flex flex-col md:flex-row items-center justify-between gap-8">
                 <div className="flex items-center gap-12 flex-1">
                   <div className="text-center">
-                    <p className="text-3xl font-bold text-white">{flight.departure}</p>
-                    <p className="text-white/40 text-sm">{flight.from}</p>
+                    <p className="text-3xl font-bold text-zinc-900">{flight.departure}</p>
+                    <p className="text-zinc-500 text-sm">{flight.from}</p>
                   </div>
                   <div className="flex-1 flex flex-col items-center gap-2">
-                    <p className="text-white/30 text-xs uppercase tracking-widest">{flight.duration}</p>
-                    <div className="w-full h-px bg-white/10 relative">
-                      <Plane className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-amber-500 w-4 h-4 rotate-90" />
+                    <p className="text-zinc-400 text-xs uppercase tracking-widest">{flight.duration}</p>
+                    <div className="w-full h-px bg-zinc-200 relative">
+                      <Plane className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-gold w-4 h-4 rotate-90" />
                     </div>
-                    <p className="text-white/30 text-xs">Direct</p>
+                    <p className="text-zinc-400 text-xs">Direct</p>
                   </div>
                   <div className="text-center">
-                    <p className="text-3xl font-bold text-white">{flight.arrival}</p>
-                    <p className="text-white/40 text-sm">{flight.to}</p>
+                    <p className="text-3xl font-bold text-zinc-900">{flight.arrival}</p>
+                    <p className="text-zinc-500 text-sm">{flight.to}</p>
                   </div>
                 </div>
-                <div className="flex items-center gap-8 pl-8 border-l border-white/5">
+                <div className="flex items-center gap-8 pl-8 border-l border-zinc-100">
                   <div className="text-right">
-                    <p className="text-white/40 text-xs uppercase tracking-widest mb-1">{flight.class}</p>
-                    <p className="text-3xl font-bold text-amber-500">${flight.price}</p>
+                    <p className="text-zinc-400 text-xs uppercase tracking-widest mb-1">{flight.class}</p>
+                    <p className="text-3xl font-bold text-gold">${flight.price}</p>
                   </div>
-                  <div className="w-12 h-12 bg-amber-600 rounded-full flex items-center justify-center text-white group-hover:scale-110 transition-transform">
+                  <div className="w-12 h-12 bg-burgundy rounded-full flex items-center justify-center text-white group-hover:scale-110 transition-transform shadow-lg shadow-burgundy/20">
                     <ChevronRight className="w-6 h-6" />
                   </div>
                 </div>
@@ -499,26 +501,26 @@ export default function App() {
   );
 
   const renderPassengers = () => (
-    <div className="min-h-screen bg-zinc-950 pt-32 pb-20 px-4">
+    <div className="min-h-screen bg-white pt-32 pb-20 px-4">
       <div className="max-w-2xl mx-auto">
-        <button onClick={prevStep} className="text-white/50 hover:text-white flex items-center gap-2 mb-8">
+        <button onClick={prevStep} className="text-zinc-500 hover:text-burgundy flex items-center gap-2 mb-8 transition-colors">
           <ChevronLeft className="w-5 h-5" /> Back to flights
         </button>
-        <h2 className="text-4xl font-serif text-white mb-8">Passenger Details</h2>
+        <h2 className="text-4xl font-serif text-zinc-900 mb-8">Passenger Details</h2>
         
         <div className="space-y-8">
           {booking.passengers.map((p, i) => (
-            <div key={i} className="bg-zinc-900 border border-white/5 p-8 rounded-3xl space-y-6">
-              <h3 className="text-amber-500 font-medium flex items-center gap-2">
+            <div key={i} className="bg-zinc-50 border border-zinc-100 p-8 rounded-3xl space-y-6 shadow-sm">
+              <h3 className="text-burgundy font-medium flex items-center gap-2">
                 <User className="w-5 h-5" /> Passenger {i + 1}
               </h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
-                  <label className="text-xs uppercase tracking-widest text-white/40 block mb-2">First Name</label>
+                  <label className="text-xs uppercase tracking-widest text-zinc-500 block mb-2">First Name</label>
                   <input 
                     type="text"
                     placeholder="As in passport"
-                    className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:border-amber-500 focus:ring-0 transition-colors"
+                    className="w-full bg-white border border-zinc-200 rounded-xl px-4 py-3 text-zinc-900 focus:border-burgundy focus:ring-0 transition-colors"
                     value={p.firstName}
                     onChange={e => {
                       const newPassengers = [...booking.passengers];
@@ -528,11 +530,11 @@ export default function App() {
                   />
                 </div>
                 <div>
-                  <label className="text-xs uppercase tracking-widest text-white/40 block mb-2">Last Name</label>
+                  <label className="text-xs uppercase tracking-widest text-zinc-500 block mb-2">Last Name</label>
                   <input 
                     type="text"
                     placeholder="As in passport"
-                    className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:border-amber-500 focus:ring-0 transition-colors"
+                    className="w-full bg-white border border-zinc-200 rounded-xl px-4 py-3 text-zinc-900 focus:border-burgundy focus:ring-0 transition-colors"
                     value={p.lastName}
                     onChange={e => {
                       const newPassengers = [...booking.passengers];
@@ -542,15 +544,43 @@ export default function App() {
                   />
                 </div>
                 <div className="md:col-span-2">
-                  <label className="text-xs uppercase tracking-widest text-white/40 block mb-2">Passport Number</label>
+                  <label className="text-xs uppercase tracking-widest text-zinc-500 block mb-2">Passport Number</label>
                   <input 
                     type="text"
                     placeholder="Enter passport number"
-                    className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:border-amber-500 focus:ring-0 transition-colors"
+                    className="w-full bg-white border border-zinc-200 rounded-xl px-4 py-3 text-zinc-900 focus:border-burgundy focus:ring-0 transition-colors"
                     value={p.passportNumber}
                     onChange={e => {
                       const newPassengers = [...booking.passengers];
                       newPassengers[i] = { ...p, passportNumber: e.target.value };
+                      setBooking({ ...booking, passengers: newPassengers });
+                    }}
+                  />
+                </div>
+                <div>
+                  <label className="text-xs uppercase tracking-widest text-zinc-500 block mb-2">Email Address</label>
+                  <input 
+                    type="email"
+                    placeholder="email@example.com"
+                    className="w-full bg-white border border-zinc-200 rounded-xl px-4 py-3 text-zinc-900 focus:border-burgundy focus:ring-0 transition-colors"
+                    value={p.email}
+                    onChange={e => {
+                      const newPassengers = [...booking.passengers];
+                      newPassengers[i] = { ...p, email: e.target.value };
+                      setBooking({ ...booking, passengers: newPassengers });
+                    }}
+                  />
+                </div>
+                <div>
+                  <label className="text-xs uppercase tracking-widest text-zinc-500 block mb-2">Phone Number</label>
+                  <input 
+                    type="tel"
+                    placeholder="+1 234 567 890"
+                    className="w-full bg-white border border-zinc-200 rounded-xl px-4 py-3 text-zinc-900 focus:border-burgundy focus:ring-0 transition-colors"
+                    value={p.phone}
+                    onChange={e => {
+                      const newPassengers = [...booking.passengers];
+                      newPassengers[i] = { ...p, phone: e.target.value };
                       setBooking({ ...booking, passengers: newPassengers });
                     }}
                   />
@@ -562,7 +592,7 @@ export default function App() {
 
         <button 
           onClick={nextStep}
-          className="w-full mt-12 bg-amber-600 text-white py-5 rounded-2xl text-lg font-bold uppercase tracking-[0.2em] hover:bg-amber-700 transition-all shadow-lg shadow-amber-600/20"
+          className="w-full mt-12 bg-burgundy text-white py-5 rounded-2xl text-lg font-bold uppercase tracking-[0.2em] hover:bg-red-900 transition-all shadow-lg shadow-burgundy/20"
         >
           Select Seats
         </button>
@@ -575,23 +605,23 @@ export default function App() {
     const cols = ['A', 'B', 'C', 'D', 'E', 'F'];
     
     return (
-      <div className="min-h-screen bg-zinc-950 pt-32 pb-20 px-4">
+      <div className="min-h-screen bg-white pt-32 pb-20 px-4">
         <div className="max-w-4xl mx-auto">
-          <button onClick={prevStep} className="text-white/50 hover:text-white flex items-center gap-2 mb-8">
+          <button onClick={prevStep} className="text-zinc-500 hover:text-burgundy flex items-center gap-2 mb-8 transition-colors">
             <ChevronLeft className="w-5 h-5" /> Back to passengers
           </button>
           <div className="flex flex-col md:flex-row items-start justify-between gap-12">
             <div className="flex-1">
-              <h2 className="text-4xl font-serif text-white mb-4">Select Your Seat</h2>
-              <p className="text-white/50 mb-8">Choose your preferred seat for a comfortable journey.</p>
+              <h2 className="text-4xl font-serif text-zinc-900 mb-4">Select Your Seat</h2>
+              <p className="text-zinc-500 mb-8">Choose your preferred seat for a comfortable journey.</p>
               
-              <div className="bg-zinc-900 border border-white/5 p-8 rounded-3xl overflow-x-auto">
+              <div className="bg-zinc-50 border border-zinc-100 p-8 rounded-3xl overflow-x-auto shadow-sm">
                 <div className="min-w-[400px] flex flex-col items-center gap-4">
-                  <div className="w-full h-12 bg-white/5 rounded-t-[100px] border-x border-t border-white/10 flex items-center justify-center text-white/20 text-xs uppercase tracking-widest">Cockpit</div>
+                  <div className="w-full h-12 bg-zinc-200/50 rounded-t-[100px] border-x border-t border-zinc-200 flex items-center justify-center text-zinc-400 text-xs uppercase tracking-widest">Cockpit</div>
                   
                   {Array.from({ length: rows }).map((_, r) => (
                     <div key={r} className="flex items-center gap-4">
-                      <div className="w-6 text-white/20 text-xs font-mono">{r + 1}</div>
+                      <div className="w-6 text-zinc-400 text-xs font-mono">{r + 1}</div>
                       <div className="flex items-center gap-2">
                         {cols.map((c, i) => {
                           const seatId = `${r + 1}${c}`;
@@ -613,9 +643,9 @@ export default function App() {
                                 }}
                                 className={cn(
                                   "w-10 h-10 rounded-lg flex items-center justify-center transition-all",
-                                  isOccupied ? "bg-zinc-800 text-zinc-700 cursor-not-allowed" : 
-                                  isSelected ? "bg-amber-500 text-white shadow-lg shadow-amber-500/20" : 
-                                  "bg-white/5 text-white/40 hover:bg-white/10"
+                                  isOccupied ? "bg-zinc-200 text-zinc-400 cursor-not-allowed" : 
+                                  isSelected ? "bg-gold text-white shadow-lg shadow-gold/20" : 
+                                  "bg-white border border-zinc-200 text-zinc-400 hover:border-burgundy hover:text-burgundy"
                                 )}
                               >
                                 <Armchair className="w-5 h-5" />
@@ -632,16 +662,16 @@ export default function App() {
             </div>
 
             <div className="w-full md:w-80 space-y-6">
-              <div className="bg-zinc-900 border border-white/5 p-6 rounded-3xl">
-                <h3 className="text-white font-medium mb-4">Selection Summary</h3>
+              <div className="bg-zinc-50 border border-zinc-100 p-6 rounded-3xl shadow-sm">
+                <h3 className="text-zinc-900 font-medium mb-4">Selection Summary</h3>
                 <div className="space-y-3">
                   <div className="flex justify-between text-sm">
-                    <span className="text-white/40">Passengers</span>
-                    <span className="text-white">{booking.passengersCount}</span>
+                    <span className="text-zinc-500">Passengers</span>
+                    <span className="text-zinc-900 font-medium">{booking.passengersCount}</span>
                   </div>
                   <div className="flex justify-between text-sm">
-                    <span className="text-white/40">Seats Selected</span>
-                    <span className="text-white">{booking.selectedSeats.join(', ') || 'None'}</span>
+                    <span className="text-zinc-500">Seats Selected</span>
+                    <span className="text-zinc-900 font-medium">{booking.selectedSeats.join(', ') || 'None'}</span>
                   </div>
                 </div>
               </div>
@@ -649,7 +679,7 @@ export default function App() {
               <button 
                 disabled={booking.selectedSeats.length < booking.passengersCount}
                 onClick={nextStep}
-                className="w-full bg-amber-600 text-white py-5 rounded-2xl text-lg font-bold uppercase tracking-[0.2em] hover:bg-amber-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full bg-burgundy text-white py-5 rounded-2xl text-lg font-bold uppercase tracking-[0.2em] hover:bg-red-900 transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-burgundy/20"
               >
                 Continue
               </button>
@@ -661,13 +691,13 @@ export default function App() {
   };
 
   const renderAddons = () => (
-    <div className="min-h-screen bg-zinc-950 pt-32 pb-20 px-4">
+    <div className="min-h-screen bg-white pt-32 pb-20 px-4">
       <div className="max-w-4xl mx-auto">
-        <button onClick={prevStep} className="text-white/50 hover:text-white flex items-center gap-2 mb-8">
+        <button onClick={prevStep} className="text-zinc-500 hover:text-burgundy flex items-center gap-2 mb-8 transition-colors">
           <ChevronLeft className="w-5 h-5" /> Back to seats
         </button>
-        <h2 className="text-4xl font-serif text-white mb-4">Enhance Your Journey</h2>
-        <p className="text-white/50 mb-12">Add premium services for a truly exceptional experience.</p>
+        <h2 className="text-4xl font-serif text-zinc-900 mb-4">Enhance Your Journey</h2>
+        <p className="text-zinc-500 mb-12">Add premium services for a truly exceptional experience.</p>
         
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {[
@@ -685,24 +715,24 @@ export default function App() {
                 });
               }}
               className={cn(
-                "p-8 rounded-3xl border transition-all cursor-pointer flex items-start gap-6",
+                "p-8 rounded-3xl border transition-all cursor-pointer flex items-start gap-6 shadow-sm",
                 booking.addons[item.id as keyof typeof booking.addons] 
-                  ? "bg-amber-600/10 border-amber-500" 
-                  : "bg-zinc-900 border-white/5 hover:border-white/20"
+                  ? "bg-burgundy/5 border-burgundy" 
+                  : "bg-zinc-50 border-zinc-100 hover:border-burgundy/30"
               )}
             >
               <div className={cn(
                 "w-14 h-14 rounded-2xl flex items-center justify-center",
-                booking.addons[item.id as keyof typeof booking.addons] ? "bg-amber-600 text-white" : "bg-white/5 text-amber-500"
+                booking.addons[item.id as keyof typeof booking.addons] ? "bg-burgundy text-white" : "bg-white border border-zinc-200 text-gold"
               )}>
                 {item.icon}
               </div>
               <div className="flex-1">
                 <div className="flex justify-between items-center mb-2">
-                  <h3 className="text-xl font-medium text-white">{item.title}</h3>
-                  <span className="text-amber-500 font-bold">${item.price}</span>
+                  <h3 className="text-xl font-medium text-zinc-900">{item.title}</h3>
+                  <span className="text-gold font-bold">${item.price}</span>
                 </div>
-                <p className="text-white/40 text-sm leading-relaxed">{item.desc}</p>
+                <p className="text-zinc-500 text-sm leading-relaxed">{item.desc}</p>
               </div>
             </div>
           ))}
@@ -710,95 +740,93 @@ export default function App() {
 
         <button 
           onClick={nextStep}
-          className="w-full mt-12 bg-amber-600 text-white py-5 rounded-2xl text-lg font-bold uppercase tracking-[0.2em] hover:bg-amber-700 transition-all shadow-lg shadow-amber-600/20"
+          className="w-full mt-12 bg-burgundy text-white py-5 rounded-2xl text-lg font-bold uppercase tracking-[0.2em] hover:bg-red-900 transition-all shadow-lg shadow-burgundy/20"
         >
           Proceed to Payment
         </button>
       </div>
     </div>
-  );
-
-  const renderPayment = () => {
+  );  const renderPayment = () => {
     const flightPrice = (booking.selectedFlight?.price || 0) * booking.passengersCount;
     const addonsPrice = (booking.addons.baggage ? 45 : 0) + (booking.addons.lounge ? 60 : 0) + (booking.addons.alMaha ? 35 : 0) + (booking.addons.insurance ? 25 : 0);
     const total = flightPrice + addonsPrice;
 
     return (
-      <div className="min-h-screen bg-zinc-950 pt-32 pb-20 px-4">
+      <div className="min-h-screen bg-white pt-32 pb-20 px-4">
         <div className="max-w-4xl mx-auto">
-          <button onClick={prevStep} className="text-white/50 hover:text-white flex items-center gap-2 mb-8">
+          <button onClick={prevStep} className="text-zinc-500 hover:text-burgundy flex items-center gap-2 mb-8 transition-colors">
             <ChevronLeft className="w-5 h-5" /> Back to add-ons
           </button>
           
           <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
             <div className="md:col-span-2 space-y-8">
-              <h2 className="text-4xl font-serif text-white mb-8">Payment</h2>
+              <h2 className="text-4xl font-serif text-zinc-900 mb-8">Payment</h2>
               
-              <div className="bg-zinc-900 border border-white/5 p-8 rounded-3xl space-y-6">
+              <div className="bg-zinc-50 border border-zinc-100 p-8 rounded-3xl space-y-6 shadow-sm">
                 <div className="flex items-center gap-4 mb-6">
-                  <div className="w-12 h-8 bg-white/10 rounded flex items-center justify-center text-[10px] text-white/40 font-bold">VISA</div>
-                  <div className="w-12 h-8 bg-white/10 rounded flex items-center justify-center text-[10px] text-white/40 font-bold">MASTER</div>
-                  <div className="w-12 h-8 bg-white/10 rounded flex items-center justify-center text-[10px] text-white/40 font-bold">AMEX</div>
+                  <div className="w-12 h-8 bg-white border border-zinc-200 rounded flex items-center justify-center text-[10px] text-zinc-400 font-bold">VISA</div>
+                  <div className="w-12 h-8 bg-white border border-zinc-200 rounded flex items-center justify-center text-[10px] text-zinc-400 font-bold">MASTER</div>
+                  <div className="w-12 h-8 bg-white border border-zinc-200 rounded flex items-center justify-center text-[10px] text-zinc-400 font-bold">AMEX</div>
                 </div>
                 
                 <div className="space-y-4">
                   <div>
-                    <label className="text-xs uppercase tracking-widest text-white/40 block mb-2">Card Number</label>
+                    <label className="text-xs uppercase tracking-widest text-zinc-500 block mb-2">Card Number</label>
                     <div className="relative">
-                      <CreditCard className="absolute left-4 top-1/2 -translate-y-1/2 text-white/20 w-5 h-5" />
+                      <CreditCard className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-300 w-5 h-5" />
                       <input 
                         type="text"
                         placeholder="0000 0000 0000 0000"
-                        className="w-full bg-white/5 border border-white/10 rounded-xl pl-12 pr-4 py-4 text-white focus:border-amber-500 focus:ring-0 transition-colors"
+                        className="w-full bg-white border border-zinc-200 rounded-xl pl-12 pr-4 py-4 text-zinc-900 focus:border-burgundy focus:ring-0 transition-colors"
                       />
                     </div>
                   </div>
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <label className="text-xs uppercase tracking-widest text-white/40 block mb-2">Expiry Date</label>
+                      <label className="text-xs uppercase tracking-widest text-zinc-500 block mb-2">Expiry Date</label>
                       <input 
                         type="text"
                         placeholder="MM/YY"
-                        className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-4 text-white focus:border-amber-500 focus:ring-0 transition-colors"
+                        className="w-full bg-white border border-zinc-200 rounded-xl px-4 py-4 text-zinc-900 focus:border-burgundy focus:ring-0 transition-colors"
                       />
                     </div>
                     <div>
-                      <label className="text-xs uppercase tracking-widest text-white/40 block mb-2">CVV</label>
+                      <label className="text-xs uppercase tracking-widest text-zinc-500 block mb-2">CVV</label>
                       <input 
                         type="text"
                         placeholder="123"
-                        className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-4 text-white focus:border-amber-500 focus:ring-0 transition-colors"
+                        className="w-full bg-white border border-zinc-200 rounded-xl px-4 py-4 text-zinc-900 focus:border-burgundy focus:ring-0 transition-colors"
                       />
                     </div>
                   </div>
                 </div>
               </div>
 
-              <div className="flex items-start gap-3 text-white/40 text-sm">
+              <div className="flex items-start gap-3 text-zinc-400 text-sm">
                 <Info className="w-5 h-5 shrink-0" />
                 <p>Your payment is secured with 256-bit SSL encryption. By clicking 'Pay Now', you agree to our Terms of Carriage and Privacy Policy.</p>
               </div>
             </div>
 
             <div className="space-y-6">
-              <div className="bg-zinc-900 border border-white/5 p-8 rounded-3xl">
-                <h3 className="text-white font-medium mb-6">Price Breakdown</h3>
+              <div className="bg-zinc-50 border border-zinc-100 p-8 rounded-3xl shadow-sm">
+                <h3 className="text-zinc-900 font-medium mb-6">Price Breakdown</h3>
                 <div className="space-y-4">
                   <div className="flex justify-between text-sm">
-                    <span className="text-white/40">Flight ({booking.passengersCount}x)</span>
-                    <span className="text-white">${flightPrice}</span>
+                    <span className="text-zinc-500">Flight ({booking.passengersCount}x)</span>
+                    <span className="text-zinc-900 font-medium">${flightPrice}</span>
                   </div>
                   <div className="flex justify-between text-sm">
-                    <span className="text-white/40">Add-ons</span>
-                    <span className="text-white">${addonsPrice}</span>
+                    <span className="text-zinc-500">Add-ons</span>
+                    <span className="text-zinc-900 font-medium">${addonsPrice}</span>
                   </div>
                   <div className="flex justify-between text-sm">
-                    <span className="text-white/40">Taxes & Fees</span>
-                    <span className="text-white">$85</span>
+                    <span className="text-zinc-500">Taxes & Fees</span>
+                    <span className="text-zinc-900 font-medium">$85</span>
                   </div>
-                  <div className="pt-4 border-t border-white/5 flex justify-between items-center">
-                    <span className="text-white font-bold">Total</span>
-                    <span className="text-2xl font-bold text-amber-500">${total + 85}</span>
+                  <div className="pt-4 border-t border-zinc-200 flex justify-between items-center">
+                    <span className="text-zinc-900 font-bold">Total</span>
+                    <span className="text-3xl font-bold text-gold">${total + 85}</span>
                   </div>
                 </div>
               </div>
@@ -808,7 +836,7 @@ export default function App() {
                   trackPayment(total + 85);
                   nextStep();
                 }}
-                className="w-full bg-amber-600 text-white py-5 rounded-2xl text-lg font-bold uppercase tracking-[0.2em] hover:bg-amber-700 transition-all shadow-lg shadow-amber-600/20"
+                className="w-full bg-burgundy text-white py-5 rounded-2xl text-lg font-bold uppercase tracking-[0.2em] hover:bg-red-900 transition-all shadow-lg shadow-burgundy/20"
               >
                 Pay Now
               </button>
@@ -819,50 +847,133 @@ export default function App() {
     );
   };
 
-  const renderConfirmation = () => (
-    <div className="min-h-screen bg-zinc-950 pt-32 pb-20 px-4 flex items-center justify-center">
-      <motion.div 
-        initial={{ scale: 0.9, opacity: 0 }}
-        animate={{ scale: 1, opacity: 1 }}
-        className="max-w-xl w-full bg-zinc-900 border border-white/5 p-12 rounded-[40px] text-center"
-      >
-        <div className="w-24 h-24 bg-green-500/20 rounded-full flex items-center justify-center text-green-500 mx-auto mb-8">
-          <CheckCircle2 className="w-12 h-12" />
-        </div>
-        <h2 className="text-4xl font-serif text-white mb-4">Booking Confirmed!</h2>
-        <p className="text-white/50 mb-8">Your journey with Gharat Airways is ready. A confirmation email has been sent to your inbox.</p>
-        
-        <div className="bg-black/30 p-6 rounded-3xl mb-8 text-left space-y-4">
-          <div className="flex justify-between">
-            <span className="text-white/30 text-xs uppercase tracking-widest">Booking Reference</span>
-            <span className="text-amber-500 font-mono font-bold">GA-77X92B</span>
-          </div>
-          <div className="flex justify-between">
-            <span className="text-white/30 text-xs uppercase tracking-widest">Flight</span>
-            <span className="text-white">{booking.selectedFlight?.id}</span>
-          </div>
-          <div className="flex justify-between">
-            <span className="text-white/30 text-xs uppercase tracking-widest">Route</span>
-            <span className="text-white">{booking.from} → {booking.to}</span>
-          </div>
-          <div className="flex justify-between">
-            <span className="text-white/30 text-xs uppercase tracking-widest">Seats</span>
-            <span className="text-white">{booking.selectedSeats.join(', ')}</span>
-          </div>
-        </div>
+  const renderConfirmation = () => {
+    const selectedAddons = Object.entries(booking.addons)
+      .filter(([_, value]) => value)
+      .map(([key]) => {
+        const labels: Record<string, string> = {
+          baggage: "Extra Baggage",
+          lounge: "Lounge Access",
+          alMaha: "Al Maha Services",
+          insurance: "Travel Insurance"
+        };
+        return labels[key];
+      });
 
-        <button 
-          onClick={() => window.location.reload()}
-          className="w-full bg-white text-black py-5 rounded-2xl text-lg font-bold uppercase tracking-[0.2em] hover:bg-zinc-200 transition-all"
-        >
-          Return Home
-        </button>
-      </motion.div>
-    </div>
-  );
+    return (
+      <div className="min-h-screen bg-white pt-32 pb-20 px-4">
+        <div className="max-w-3xl mx-auto">
+          <motion.div 
+            initial={{ scale: 0.9, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            className="bg-zinc-50 border border-zinc-100 p-8 md:p-12 rounded-[40px] shadow-xl"
+          >
+            <div className="text-center mb-12">
+              <div className="w-20 h-20 bg-green-500/10 rounded-full flex items-center justify-center text-green-600 mx-auto mb-6">
+                <CheckCircle2 className="w-10 h-10" />
+              </div>
+              <h2 className="text-4xl font-serif text-zinc-900 mb-4">Booking Confirmed!</h2>
+              <p className="text-zinc-500">Your journey with Gharat Airways is ready. A confirmation email has been sent to {booking.passengers[0].email}.</p>
+            </div>
+            
+            <div className="space-y-8">
+              {/* Reference Number */}
+              <div className="flex justify-between items-center py-4 border-b border-zinc-200">
+                <span className="text-zinc-400 text-xs uppercase tracking-widest">Booking Reference</span>
+                <span className="text-gold font-mono font-bold text-xl">GA-77X92B</span>
+              </div>
+
+              {/* Flight Details */}
+              <div className="space-y-4">
+                <h3 className="text-burgundy font-medium flex items-center gap-2">
+                  <Plane className="w-5 h-5" /> Flight Information
+                </h3>
+                <div className="bg-white border border-zinc-100 p-6 rounded-3xl grid grid-cols-2 md:grid-cols-4 gap-6 shadow-sm">
+                  <div>
+                    <p className="text-zinc-400 text-[10px] uppercase tracking-widest mb-1">Flight</p>
+                    <p className="text-zinc-900 font-bold">{booking.selectedFlight?.id}</p>
+                  </div>
+                  <div>
+                    <p className="text-zinc-400 text-[10px] uppercase tracking-widest mb-1">Class</p>
+                    <p className="text-zinc-900 font-bold">{booking.selectedFlight?.class}</p>
+                  </div>
+                  <div>
+                    <p className="text-zinc-400 text-[10px] uppercase tracking-widest mb-1">From</p>
+                    <p className="text-zinc-900 font-bold">{booking.from}</p>
+                  </div>
+                  <div>
+                    <p className="text-zinc-400 text-[10px] uppercase tracking-widest mb-1">To</p>
+                    <p className="text-zinc-900 font-bold">{booking.to}</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Passenger Details */}
+              <div className="space-y-4">
+                <h3 className="text-burgundy font-medium flex items-center gap-2">
+                  <Users className="w-5 h-5" /> Passenger Details
+                </h3>
+                <div className="space-y-4">
+                  {booking.passengers.map((p, i) => (
+                    <div key={i} className="bg-white border border-zinc-100 p-6 rounded-3xl shadow-sm">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                          <p className="text-zinc-400 text-[10px] uppercase tracking-widest mb-1">Name</p>
+                          <p className="text-zinc-900 font-bold">{p.firstName} {p.lastName}</p>
+                        </div>
+                        <div>
+                          <p className="text-zinc-400 text-[10px] uppercase tracking-widest mb-1">Passport</p>
+                          <p className="text-zinc-900 font-bold">{p.passportNumber}</p>
+                        </div>
+                        <div>
+                          <p className="text-zinc-400 text-[10px] uppercase tracking-widest mb-1">Email</p>
+                          <p className="text-zinc-900 font-medium">{p.email}</p>
+                        </div>
+                        <div>
+                          <p className="text-zinc-400 text-[10px] uppercase tracking-widest mb-1">Phone</p>
+                          <p className="text-zinc-900 font-medium">{p.phone}</p>
+                        </div>
+                        <div>
+                          <p className="text-zinc-400 text-[10px] uppercase tracking-widest mb-1">Seat</p>
+                          <p className="text-gold font-bold">{booking.selectedSeats[i] || 'Not assigned'}</p>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Add-ons */}
+              {selectedAddons.length > 0 && (
+                <div className="space-y-4">
+                  <h3 className="text-burgundy font-medium flex items-center gap-2">
+                    <Star className="w-5 h-5" /> Selected Add-ons
+                  </h3>
+                  <div className="bg-white border border-zinc-100 p-6 rounded-3xl flex flex-wrap gap-3 shadow-sm">
+                    {selectedAddons.map(addon => (
+                      <span key={addon} className="bg-zinc-50 text-zinc-600 px-4 py-2 rounded-full text-sm border border-zinc-100">
+                        {addon}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            <button 
+              onClick={() => window.location.reload()}
+              className="w-full mt-12 bg-burgundy text-white py-5 rounded-2xl text-lg font-bold uppercase tracking-[0.2em] hover:bg-red-900 transition-all shadow-lg shadow-burgundy/20"
+            >
+              Return Home
+            </button>
+          </motion.div>
+        </div>
+      </div>
+    );
+  };
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-white selection:bg-amber-500/30">
+    <div className="min-h-screen bg-white text-zinc-900 selection:bg-gold/30">
       <Header />
       
       <AnimatePresence mode="wait">
@@ -890,16 +1001,16 @@ export default function App() {
             initial={{ y: 100, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             exit={{ y: 100, opacity: 0 }}
-            className="fixed bottom-6 left-6 right-6 z-[100] bg-zinc-900 border border-white/10 p-6 rounded-3xl shadow-2xl flex flex-col gap-4"
+            className="fixed bottom-6 left-6 right-6 z-[100] bg-white border border-zinc-200 p-6 rounded-3xl shadow-2xl flex flex-col gap-4"
           >
             <div className="flex justify-between items-start">
               <div className="flex gap-4">
-                <div className="w-12 h-12 bg-amber-600 rounded-2xl flex items-center justify-center">
+                <div className="w-12 h-12 bg-burgundy rounded-2xl flex items-center justify-center">
                   <Plane className="text-white w-6 h-6 rotate-45" />
                 </div>
                 <div>
-                  <h4 className="text-white font-bold">Install Gharat Airways</h4>
-                  <p className="text-white/50 text-xs">Add to home screen for the full luxury experience.</p>
+                  <h4 className="text-zinc-900 font-bold">Install Gharat Airways</h4>
+                  <p className="text-zinc-500 text-xs">Add to home screen for the full luxury experience.</p>
                 </div>
               </div>
               <button 
@@ -907,63 +1018,63 @@ export default function App() {
                   setShowInstallPrompt(false);
                   localStorage.setItem('ios-prompt-seen', 'true');
                 }}
-                className="text-white/30 p-1"
+                className="text-zinc-300 p-1 hover:text-burgundy transition-colors"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
-            <div className="flex items-center gap-3 text-xs text-white/70 bg-white/5 p-3 rounded-xl">
+            <div className="flex items-center gap-3 text-xs text-zinc-600 bg-zinc-50 p-3 rounded-xl">
               <span>Tap the share icon <Share className="w-4 h-4 inline mx-1" /> and then "Add to Home Screen"</span>
             </div>
           </motion.div>
         )}
       </AnimatePresence>
 
-      <footer className="bg-black border-t border-white/5 py-12 px-6">
+      <footer className="bg-zinc-50 border-t border-zinc-200 py-12 px-6">
         <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-4 gap-12">
           <div className="space-y-6">
             <div className="flex items-center gap-2">
-              <div className="w-8 h-8 bg-amber-600 rounded-full flex items-center justify-center">
+              <div className="w-8 h-8 bg-burgundy rounded-full flex items-center justify-center">
                 <Plane className="text-white w-4 h-4 rotate-45" />
               </div>
-              <span className="text-xl font-serif italic tracking-wider text-white">Gharat Airways</span>
+              <span className="text-xl font-serif italic tracking-wider text-burgundy">Gharat Airways</span>
             </div>
-            <p className="text-white/40 text-sm leading-relaxed">Experience the world like never before with our award-winning service and luxury fleet.</p>
+            <p className="text-zinc-500 text-sm leading-relaxed">Experience the world like never before with our award-winning service and luxury fleet.</p>
           </div>
           <div>
-            <h4 className="text-white font-medium mb-6 uppercase tracking-widest text-xs">Gharat Airways</h4>
-            <ul className="space-y-4 text-sm text-white/40">
-              <li><a href="#" className="hover:text-amber-500 transition-colors">About Us</a></li>
-              <li><a href="#" className="hover:text-amber-500 transition-colors">Careers</a></li>
-              <li><a href="#" className="hover:text-amber-500 transition-colors">Press Releases</a></li>
-              <li><a href="#" className="hover:text-amber-500 transition-colors">Sponsorships</a></li>
+            <h4 className="text-zinc-900 font-medium mb-6 uppercase tracking-widest text-xs">Gharat Airways</h4>
+            <ul className="space-y-4 text-sm text-zinc-500">
+              <li><a href="#" className="hover:text-burgundy transition-colors">About Us</a></li>
+              <li><a href="#" className="hover:text-burgundy transition-colors">Careers</a></li>
+              <li><a href="#" className="hover:text-burgundy transition-colors">Press Releases</a></li>
+              <li><a href="#" className="hover:text-burgundy transition-colors">Sponsorships</a></li>
             </ul>
           </div>
           <div>
-            <h4 className="text-white font-medium mb-6 uppercase tracking-widest text-xs">Group Companies</h4>
-            <ul className="space-y-4 text-sm text-white/40">
-              <li><a href="#" className="hover:text-amber-500 transition-colors">Hamad International Airport</a></li>
-              <li><a href="#" className="hover:text-amber-500 transition-colors">Gharat Duty Free</a></li>
-              <li><a href="#" className="hover:text-amber-500 transition-colors">Gharat Executive</a></li>
-              <li><a href="#" className="hover:text-amber-500 transition-colors">Gharat Cargo</a></li>
+            <h4 className="text-zinc-900 font-medium mb-6 uppercase tracking-widest text-xs">Group Companies</h4>
+            <ul className="space-y-4 text-sm text-zinc-500">
+              <li><a href="#" className="hover:text-burgundy transition-colors">Hamad International Airport</a></li>
+              <li><a href="#" className="hover:text-burgundy transition-colors">Gharat Duty Free</a></li>
+              <li><a href="#" className="hover:text-burgundy transition-colors">Gharat Executive</a></li>
+              <li><a href="#" className="hover:text-burgundy transition-colors">Gharat Cargo</a></li>
             </ul>
           </div>
           <div>
-            <h4 className="text-white font-medium mb-6 uppercase tracking-widest text-xs">Business Solutions</h4>
-            <ul className="space-y-4 text-sm text-white/40">
-              <li><a href="#" className="hover:text-amber-500 transition-colors">Corporate Travel</a></li>
-              <li><a href="#" className="hover:text-amber-500 transition-colors">Beyond Business</a></li>
-              <li><a href="#" className="hover:text-amber-500 transition-colors">Meetings and Events</a></li>
+            <h4 className="text-zinc-900 font-medium mb-6 uppercase tracking-widest text-xs">Business Solutions</h4>
+            <ul className="space-y-4 text-sm text-zinc-500">
+              <li><a href="#" className="hover:text-burgundy transition-colors">Corporate Travel</a></li>
+              <li><a href="#" className="hover:text-burgundy transition-colors">Beyond Business</a></li>
+              <li><a href="#" className="hover:text-burgundy transition-colors">Meetings and Events</a></li>
             </ul>
           </div>
         </div>
-        <div className="max-w-7xl mx-auto mt-12 pt-8 border-t border-white/5 flex flex-col md:flex-row justify-between items-center gap-6">
-          <p className="text-white/20 text-xs">© 2026 Gharat Airways. All rights reserved.</p>
-          <div className="flex gap-6 text-white/20 text-xs uppercase tracking-widest">
-            <a href="#" className="hover:text-white transition-colors">Cookie Policy</a>
-            <a href="#" className="hover:text-white transition-colors">Legal</a>
-            <a href="#" className="hover:text-white transition-colors">Privacy</a>
-            <a href="#" className="hover:text-white transition-colors">Accessibility</a>
+        <div className="max-w-7xl mx-auto mt-12 pt-8 border-t border-zinc-200 flex flex-col md:flex-row justify-between items-center gap-6">
+          <p className="text-zinc-400 text-xs">© 2026 Gharat Airways. All rights reserved.</p>
+          <div className="flex gap-6 text-zinc-400 text-xs uppercase tracking-widest">
+            <a href="#" className="hover:text-zinc-900 transition-colors">Cookie Policy</a>
+            <a href="#" className="hover:text-zinc-900 transition-colors">Legal</a>
+            <a href="#" className="hover:text-zinc-900 transition-colors">Privacy</a>
+            <a href="#" className="hover:text-zinc-900 transition-colors">Accessibility</a>
           </div>
         </div>
       </footer>
