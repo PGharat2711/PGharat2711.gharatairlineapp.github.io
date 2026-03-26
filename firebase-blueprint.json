@@ -1,0 +1,47 @@
+{
+  "entities": {
+    "user": {
+      "title": "User Profile",
+      "description": "User profile information",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string", "description": "The user's unique ID" },
+        "email": { "type": "string", "format": "email", "description": "The user's email address" },
+        "displayName": { "type": "string", "description": "The user's display name" },
+        "photoURL": { "type": "string", "description": "The user's profile picture URL" },
+        "role": { "type": "string", "enum": ["user", "admin"], "description": "The user's role" },
+        "createdAt": { "type": "string", "format": "date-time", "description": "When the user was created" }
+      },
+      "required": ["uid", "email", "role"]
+    },
+    "booking": {
+      "title": "Flight Booking",
+      "description": "A flight booking record",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string", "description": "The user who made the booking" },
+        "tripType": { "type": "string", "enum": ["return", "oneway", "multicity"] },
+        "from": { "type": "string" },
+        "to": { "type": "string" },
+        "date": { "type": "string" },
+        "returnDate": { "type": "string" },
+        "passengersCount": { "type": "integer" },
+        "flightId": { "type": "string" },
+        "price": { "type": "number" },
+        "status": { "type": "string", "enum": ["pending", "confirmed", "cancelled"] },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["uid", "tripType", "from", "to", "date", "status", "createdAt"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "user",
+      "description": "User profile documents"
+    },
+    "/bookings/{bookingId}": {
+      "schema": "booking",
+      "description": "Flight booking records"
+    }
+  }
+}

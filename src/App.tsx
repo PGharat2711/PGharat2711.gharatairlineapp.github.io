@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Component, ErrorInfo, ReactNode } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { 
   Plane, 
@@ -25,10 +25,71 @@ import {
   User,
   Armchair,
   Info,
-  Share
+  Share,
+  LogOut,
+  Smartphone,
+  AlertCircle
 } from 'lucide-react';
 import { cn } from './lib/utils';
 import { trackBookingStep, trackFlightSelection, trackPayment, trackPageView } from './lib/gtm';
+import { auth, db, loginWithGoogle, logout, handleFirestoreError, OperationType, trackEvent } from './firebase';
+import { onAuthStateChanged, User as FirebaseUser } from 'firebase/auth';
+import { collection, addDoc, serverTimestamp, query, where, onSnapshot, orderBy } from 'firebase/firestore';
+
+// --- Error Boundary ---
+
+interface ErrorBoundaryProps {
+  children: ReactNode;
+}
+
+interface ErrorBoundaryState {
+  hasError: boolean;
+  error: Error | null;
+}
+
+class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundaryState> {
+  props: ErrorBoundaryProps;
+  state: ErrorBoundaryState = { hasError: false, error: null };
+
+  constructor(props: ErrorBoundaryProps) {
+    super(props);
+    this.props = props;
+  }
+
+  static getDerivedStateFromError(error: Error): ErrorBoundaryState {
+    return { hasError: true, error };
+  }
+
+  componentDidCatch(error: Error, errorInfo: ErrorInfo) {
+    console.error("ErrorBoundary caught an error", error, errorInfo);
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div className="min-h-screen flex items-center justify-center bg-zinc-50 p-6 text-center">
+          <div className="max-w-md space-y-4">
+            <AlertCircle className="w-16 h-16 text-burgundy mx-auto" />
+            <h2 className="text-2xl font-serif text-zinc-900">Something went wrong</h2>
+            <p className="text-zinc-500 text-sm">
+              {this.state.error?.message.startsWith('{') 
+                ? "A database error occurred. Please try again later." 
+                : "An unexpected error occurred. Please refresh the page."}
+            </p>
+            <button 
+              onClick={() => window.location.reload()}
+              className="bg-burgundy text-white px-8 py-3 rounded-full font-bold uppercase tracking-widest"
+            >
+              Refresh App
+            </button>
+          </div>
+        </div>
+      );
+    }
+
+    return this.props.children;
+  }
+}
 
 // --- Types ---
 
@@ -92,6 +153,10 @@ const MOCK_FLIGHTS: Flight[] = [
 export default function App() {
   const [step, setStep] = useState<Step>('search');
   const [showInstallPrompt, setShowInstallPrompt] = useState(false);
+  const [user, setUser] = useState<FirebaseUser | null>(null);
+  const [isAuthReady, setIsAuthReady] = useState(false);
+  const [isIOS, setIsIOS] = useState<boolean | null>(null);
+  const [userBookings, setUserBookings] = useState<any[]>([]);
   
   const [booking, setBooking] = useState<BookingData>({
     tripType: 'return',
@@ -120,7 +185,44 @@ export default function App() {
   useEffect(() => {
     trackPageView(step);
     trackBookingStep(step, { tripType: booking.tripType });
+    trackEvent('page_view', { page_title: step });
   }, [step]);
+
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+      setUser(currentUser);
+      setIsAuthReady(true);
+    });
+    return () => unsubscribe();
+  }, []);
+
+  useEffect(() => {
+    const checkIOS = () => {
+      const userAgent = window.navigator.userAgent.toLowerCase();
+      const ios = /iphone|ipad|ipod/.test(userAgent);
+      setIsIOS(ios);
+    };
+    checkIOS();
+  }, []);
+
+  useEffect(() => {
+    if (user && isAuthReady) {
+      const q = query(
+        collection(db, 'bookings'),
+        where('uid', '==', user.uid),
+        orderBy('createdAt', 'desc')
+      );
+
+      const unsubscribe = onSnapshot(q, (snapshot) => {
+        const bookings = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        setUserBookings(bookings);
+      }, (error) => {
+        handleFirestoreError(error, OperationType.GET, 'bookings');
+      });
+
+      return () => unsubscribe();
+    }
+  }, [user, isAuthReady]);
 
   const isStandalone = window.matchMedia('(display-mode: standalone)').matches || (window.navigator as any).standalone;
 
@@ -149,16 +251,37 @@ export default function App() {
             <span>Install App</span>
           </button>
         )}
-        <div className="hidden sm:flex items-center gap-2 text-zinc-400 text-xs uppercase tracking-widest">
-          <User className="w-4 h-4" />
-          <span>Privilege Club</span>
-        </div>
-        <button 
-          onClick={() => triggerHaptic()}
-          className="bg-burgundy text-white px-8 py-2.5 rounded-full text-xs font-bold uppercase tracking-widest hover:bg-red-900 transition-all shadow-lg shadow-burgundy/20 active:scale-95"
-        >
-          Login
-        </button>
+        {user ? (
+          <div className="flex items-center gap-4">
+            <div className="hidden sm:flex flex-col items-end">
+              <span className="text-[10px] text-zinc-400 uppercase tracking-widest font-bold">Privilege Club</span>
+              <span className="text-xs font-semibold text-zinc-900">{user.displayName}</span>
+            </div>
+            <button 
+              onClick={() => { triggerHaptic(); logout(); }}
+              className="text-zinc-400 hover:text-burgundy transition-colors p-2"
+              title="Logout"
+            >
+              <LogOut className="w-5 h-5" />
+            </button>
+          </div>
+        ) : (
+          <button 
+            onClick={async () => { 
+              triggerHaptic(); 
+              try {
+                await loginWithGoogle();
+                trackEvent('login', { method: 'Google' });
+              } catch (error) {
+                console.error("Login failed", error);
+                trackEvent('login_failed', { error: String(error) });
+              }
+            }}
+            className="bg-burgundy text-white px-8 py-2.5 rounded-full text-xs font-bold uppercase tracking-widest hover:bg-red-900 transition-all shadow-lg shadow-burgundy/20 active:scale-95"
+          >
+            Login
+          </button>
+        )}
       </div>
     </header>
   );
@@ -797,7 +920,37 @@ export default function App() {
         </button>
       </div>
     </div>
-  );  const renderPayment = () => {
+  );  const handlePayment = async () => {
+    if (!user) {
+      loginWithGoogle();
+      return;
+    }
+
+    try {
+      triggerHaptic();
+      const bookingPayload = {
+        uid: user.uid,
+        tripType: booking.tripType,
+        from: booking.from,
+        to: booking.to,
+        date: booking.date,
+        returnDate: booking.returnDate || null,
+        passengersCount: booking.passengersCount,
+        flightId: booking.selectedFlight?.id || null,
+        price: (booking.selectedFlight?.price || 0) * booking.passengersCount,
+        status: 'confirmed',
+        createdAt: serverTimestamp(),
+      };
+
+      await addDoc(collection(db, 'bookings'), bookingPayload);
+      trackPayment(bookingPayload.price);
+      nextStep();
+    } catch (error) {
+      handleFirestoreError(error, OperationType.CREATE, 'bookings');
+    }
+  };
+
+  const renderPayment = () => {
     const flightPrice = (booking.selectedFlight?.price || 0) * booking.passengersCount;
     const addonsPrice = (booking.addons.baggage ? 45 : 0) + (booking.addons.lounge ? 60 : 0) + (booking.addons.alMaha ? 35 : 0) + (booking.addons.insurance ? 25 : 0);
     const total = flightPrice + addonsPrice;
@@ -883,13 +1036,10 @@ export default function App() {
               </div>
               
               <button 
-                onClick={() => {
-                  trackPayment(total + 85);
-                  nextStep();
-                }}
+                onClick={handlePayment}
                 className="w-full bg-burgundy text-white py-5 rounded-2xl text-lg font-bold uppercase tracking-[0.2em] hover:bg-red-900 transition-all shadow-lg shadow-burgundy/20"
               >
-                Pay Now
+                {user ? 'Pay Now' : 'Login to Pay'}
               </button>
             </div>
           </div>
@@ -1023,28 +1173,46 @@ export default function App() {
     );
   };
 
+  if (isIOS === false) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-burgundy p-6 text-center text-white">
+        <div className="max-w-md space-y-6">
+          <Smartphone className="w-20 h-20 mx-auto" />
+          <h1 className="text-4xl font-serif italic">Gharat Airways</h1>
+          <p className="text-xl font-light">
+            Our premium experience is currently exclusive to iOS devices.
+          </p>
+          <p className="text-sm opacity-70">
+            Please visit us from an iPhone or iPad to experience the world's best airline app.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="min-h-screen bg-white text-zinc-900 selection:bg-gold/30">
-      <Header />
-      
-      <AnimatePresence mode="wait">
-        <motion.main
-          key={step}
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: -10 }}
-          transition={{ duration: 0.3 }}
-          className="pb-[env(safe-area-inset-bottom)]"
-        >
-          {step === 'search' && renderSearch()}
-          {step === 'flights' && renderFlights()}
-          {step === 'passengers' && renderPassengers()}
-          {step === 'seats' && renderSeats()}
-          {step === 'addons' && renderAddons()}
-          {step === 'payment' && renderPayment()}
-          {step === 'confirmation' && renderConfirmation()}
-        </motion.main>
-      </AnimatePresence>
+    <ErrorBoundary>
+      <div className="min-h-screen bg-white text-zinc-900 selection:bg-gold/30">
+        <Header />
+        
+        <AnimatePresence mode="wait">
+          <motion.main
+            key={step}
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            transition={{ duration: 0.3 }}
+            className="pb-[env(safe-area-inset-bottom)]"
+          >
+            {step === 'search' && renderSearch()}
+            {step === 'flights' && renderFlights()}
+            {step === 'passengers' && renderPassengers()}
+            {step === 'seats' && renderSeats()}
+            {step === 'addons' && renderAddons()}
+            {step === 'payment' && renderPayment()}
+            {step === 'confirmation' && renderConfirmation()}
+          </motion.main>
+        </AnimatePresence>
 
       <AnimatePresence>
         {showInstallPrompt && (
@@ -1139,5 +1307,6 @@ export default function App() {
         </div>
       </footer>
     </div>
+    </ErrorBoundary>
   );
 }
